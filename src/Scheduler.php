@@ -108,7 +108,7 @@ class Scheduler implements Queue {
    */
   public function pushRaw($payload, $queue = null, array $options = [])
   {
-      $token = JWT::create(['uuid' => $payload['uuid']], Variable::get('netflex_api'), 300);
+      $token = JWT::create(['uuid' => $payload['uuid']], Variable::get('netflex_api'), 3600);
 
       return API::post('scheduler/jobs', [
           'method' => 'post',
