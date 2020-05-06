@@ -36,7 +36,7 @@ class SchedulerServiceProvider extends ServiceProvider
 
   public function registerRoutes()
   {
-    /** @var Router */
+    /** @var \Illuminate\Routing\Router */
     $router = $this->app['router'];
 
     $router->post('/.well-known/netflex/scheduler', function (Request $request) {
@@ -57,6 +57,6 @@ class SchedulerServiceProvider extends ServiceProvider
       }
 
       abort(400);
-    });
+    })->name('Netflex Queue Worker');
   }
 }
