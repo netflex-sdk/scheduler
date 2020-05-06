@@ -41,16 +41,22 @@ class SchedulerServiceProvider extends ServiceProvider
 
     $router->post('/.well-known/netflex/scheduler', function (Request $request) {
       $token = $request->get('token');
-      if ($payload = JWT::decodeAndVerify($token, Variable::get('netflex_api'))) {
-        try {
-          $job = unserialize($payload->data->command);
-          if (is_object($job) && method_exists($job, 'handle')) {
-            return $job->handle;
-          }
-        } catch (Throwable $e) {
-          return;
+
+      if ($task = JWT::decodeAndVerify($token, Variable::get('netflex_api'))) {
+        if ($task->uuid === $request->get('uuid')) {
+            try {
+                $job = unserialize($request->get('data')['command']);
+                return [
+                    'uuid' => $task->uuid,
+                    'output' => $job->handle()
+                ];
+              } catch (Throwable $e) {
+                abort(400);
+              }
         }
       }
+
+      abort(400);
     });
   }
 }

@@ -101,17 +101,19 @@ class Scheduler implements Queue {
   /**
    * Push a raw payload onto the queue.
    *
-   * @param  string  $payload
+   * @param  object|array  $payload
    * @param  string|null  $queue
    * @param  array  $options
    * @return mixed
    */
   public function pushRaw($payload, $queue = null, array $options = [])
   {
+      $token = JWT::create(['uuid' => $payload['uuid']], Variable::get('netflex_api'), 300);
+
       return API::post('scheduler/jobs', [
           'method' => 'post',
-          'name' => $payload['displayName'] . '(' . $payload['uuid'] . ')',
-          'url' => $this->url . '/.well-known/netflex?token=' . JWT::create($payload, Variable::get('netflex_api')),
+          'name' => $payload['displayName'] . ' (' . $payload['uuid'] . ')',
+          'url' => $this->url . '/.well-known/netflex/scheduler?token=' . $token,
           'payload' => $payload,
           'start' => $options['start'] ?? Carbon::now()->toDateTimeString(),
           'enabled' => true
