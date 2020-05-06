@@ -2,6 +2,7 @@
 
 namespace Netflex\Scheduler;
 
+use Exception;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 
 class SchedulerConnector implements ConnectorInterface
@@ -14,7 +15,10 @@ class SchedulerConnector implements ConnectorInterface
    */
   public function connect(array $config)
   {
-    assert($config['url'] ?? false, 'url endpoint missing');
-    return new Scheduler($config['url']);
+    if ($config['url'] ?? false) {
+      return new Scheduler($config['url']);
+    }
+
+    throw new Exception('Queue URL not configured');
   }
 }
