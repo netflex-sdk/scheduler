@@ -45,6 +45,7 @@ class SchedulerServiceProvider extends ServiceProvider
       if ($task = JWT::decodeAndVerify($token, Variable::get('netflex_api'))) {
         if ($task->uuid === $request->get('uuid')) {
             try {
+                set_time_limit(0);
                 $job = unserialize($request->get('data')['command']);
                 return [
                     'uuid' => $task->uuid,
