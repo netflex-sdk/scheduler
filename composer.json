@@ -24,8 +24,6 @@
     "netflex/foundation": "^3.0",
     "netflex/support": "^3.0"
   },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "extra": {
     "laravel": {
       "providers": [
