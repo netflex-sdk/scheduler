@@ -30,5 +30,8 @@
         "Netflex\\Scheduler\\Providers\\SchedulerServiceProvider"
       ]
     }
+  },
+  "require-dev": {
+    "apility/test-utilities": "^0.0.12"
   }
 }

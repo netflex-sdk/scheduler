@@ -10,6 +10,7 @@ use Netflex\Scheduler\SchedulerConnector;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
+use Netflex\Scheduler\Scheduler;
 
 class SchedulerServiceProvider extends ServiceProvider
 {
@@ -20,8 +21,8 @@ class SchedulerServiceProvider extends ServiceProvider
 
   public function boot()
   {
-    $this->registerDriver();
     $this->registerRoutes();
+    $this->registerDriver();
   }
 
   public function registerDriver()
@@ -40,24 +41,7 @@ class SchedulerServiceProvider extends ServiceProvider
     $router = $this->app['router'];
 
     $router->post('/.well-known/netflex/scheduler', function (Request $request) {
-      $token = $request->get('token');
-
-      if ($task = JWT::decodeAndVerify($token, Variable::get('netflex_api'))) {
-        if ($task->uuid === $request->get('uuid')) {
-            try {
-                set_time_limit(0);
-                $job = unserialize($request->get('data')['command']);
-                return [
-                    'uuid' => $task->uuid,
-                    'output' => $job->handle()
-                ];
-              } catch (Throwable $e) {
-                abort(400);
-              }
-        }
-      }
-
-      abort(400);
-    })->name('Netflex Queue Worker');
+      return Scheduler::handle($request);
+    })->name('netflex.queue.worker');
   }
 }
