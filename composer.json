@@ -15,9 +15,9 @@
         "illuminate/http": "^8.0",
         "illuminate/queue": "^8.0",
         "illuminate/support": "^8.0",
-        "netflex/api": "^4.2",
-        "netflex/foundation": "^4.2",
-        "netflex/support": "^4.2"
+        "netflex/api": "^4.1",
+        "netflex/foundation": "^4.1",
+        "netflex/support": "^4.1"
     },
     "extra": {
         "laravel": {
