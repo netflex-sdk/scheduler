@@ -6,7 +6,7 @@
 <a href="https://github.com/netflex-sdk/sdk/graphs/contributors"><img src="https://img.shields.io/github/contributors/netflex-sdk/sdk.svg?color=green" alt="Contributors"></a>
 <a href="https://packagist.org/packages/netflex/scheduler/stats"><img src="https://img.shields.io/packagist/dm/netflex/scheduler" alt="Downloads"></a>
 
-[READ ONLY] Subtree split of the Netflex Scheduler component (see [netflex/framework](https://github.con/netflex-sdk/framework))
+[READ ONLY] Subtree split of the Netflex Scheduler component (see [netflex/framework](https://github.com/netflex-sdk/framework))
 
 Use Laravels job dispatching with Netflex Scheduled Tasks API.
 
