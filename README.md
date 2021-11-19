@@ -1,4 +1,6 @@
-# Scheduler
+# Netflex Scheduler
+
+[READ ONLY] Subtree split of the Netflex Scheduler component (see [netflex/framework](https://github.con/netflex-sdk/framework))
 
 Use Laravels job dispatching with Netflex Scheduled Tasks API.
 
