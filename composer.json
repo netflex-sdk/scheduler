@@ -17,7 +17,8 @@
         "illuminate/support": "^8.0",
         "netflex/api": "^4.1",
         "netflex/foundation": "^4.1",
-        "netflex/support": "^4.1"
+        "netflex/support": "^4.1",
+        "php": "^7.4|^8.0"
     },
     "extra": {
         "branch-alias": {
