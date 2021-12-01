@@ -16,7 +16,6 @@ use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Http\Request;
 use Illuminate\Queue\CallQueuedClosure;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Str;
 
@@ -101,8 +100,7 @@ class Scheduler implements Queue
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
-        $timeout = Config::get(implode('.', ['queue', 'connections', $this->getConnectionName(), 'timeout']), 3600);
-        $token = JWT::create($payload, Variable::get('netflex_api'), $timeout);
+        $token = JWT::create($payload, Variable::get('netflex_api'), 3600);
 
         return API::post('scheduler/jobs', [
             'method' => 'post',
