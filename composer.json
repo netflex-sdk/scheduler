@@ -15,12 +15,15 @@
         "illuminate/http": "^8.0",
         "illuminate/queue": "^8.0",
         "illuminate/support": "^8.0",
-        "netflex/api": "^4.0.13",
-        "netflex/foundation": "^4.0.13",
-        "netflex/support": "^4.0.13",
+        "netflex/api": "^4.1",
+        "netflex/foundation": "^4.1",
+        "netflex/support": "^4.1",
         "php": "^7.4|^8.0"
     },
     "extra": {
+        "branch-alias": {
+            "dev-master": "5.0.x-dev"
+        },
         "laravel": {
             "providers": [
                 "Netflex\\Scheduler\\Providers\\SchedulerServiceProvider"
