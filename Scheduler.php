@@ -19,6 +19,7 @@ use Illuminate\Queue\CallQueuedClosure;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Str;
+use Netflex\Scheduler\Contracts\HasJobLabel;
 
 class Scheduler implements Queue
 {
@@ -68,6 +69,16 @@ class Scheduler implements Queue
     {
         $payload = $this->createPayload($job, $this->getQueue($queue), $data);
 
+        $name = $payload['displayName'] . ' (' . $payload['uuid'] . ')';
+
+        if ($job instanceof HasJobLabel) {
+            if ($label = $job->getJobLabel()) {
+                $name = $label . ' (' . $payload['uuid'] . ')';
+            }
+        }
+
+        $payload['name'] = $name;
+
         return $this->pushRaw($payload, $this->getQueue($queue), [
             'start' => Carbon::now()->toDateTimeString()
         ]);
@@ -104,9 +115,11 @@ class Scheduler implements Queue
         $timeout = Config::get(implode('.', ['queue', 'connections', $this->getConnectionName(), 'timeout']), 3600);
         $token = JWT::create($payload, Variable::get('netflex_api'), $timeout);
 
+        $name = $payload['name'] ?? $payload['displayName'] . ' (' . $payload['uuid'] . ')';
+
         return API::post('scheduler/jobs', [
             'method' => 'post',
-            'name' => $payload['displayName'] . ' (' . $payload['uuid'] . ')',
+            'name' => $name,
             'url' =>  route('netflex.queue.worker'),
             'payload' => ['task' => $token],
             'start' => $options['start'] ?? Carbon::now()->toDateTimeString(),
