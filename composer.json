@@ -15,9 +15,9 @@
         "illuminate/http": "^8.0",
         "illuminate/queue": "^8.0",
         "illuminate/support": "^8.0",
-        "netflex/api": "^4.2.6",
-        "netflex/foundation": "^4.2.6",
-        "netflex/support": "^4.2.6",
+        "netflex/api": "^4.2.7",
+        "netflex/foundation": "^4.2.7",
+        "netflex/support": "^4.2.7",
         "php": "^7.4|^8.0"
     },
     "extra": {
