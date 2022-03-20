@@ -392,19 +392,19 @@ class Scheduler implements Queue
     {
         if ($data = $request->get('task')) {
             if ($jwt = JWT::decodeAndVerify($data, Variable::get('netflex_api'))) {
-                if ($task = $jwt->payload) {
+                if ($task = $jwt->data) {
                     try {
-                        if ($job = unserialize($task->data->command)) {
+                        if ($job = unserialize($task->command)) {
                             set_time_limit(3600);
                             return [
-                                'uuid' => $task->uuid,
+                                'uuid' => $jwt->uuid,
                                 'success' => ((int) $job->handle()) === 0
                             ];
                         }
                         abort(400);
                     } catch (Throwable $e) {
                         return response()->json([
-                            'uuid' => $task->uuid ?? null,
+                            'uuid' => $jwt->uuid ?? null,
                             'success' => false,
                             'error' => $e->getMessage()
                         ], 500);
