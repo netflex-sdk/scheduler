@@ -15,14 +15,14 @@
         "illuminate/http": "^8.0",
         "illuminate/queue": "^8.0",
         "illuminate/support": "^8.0",
-        "netflex/api": "^4.9",
-        "netflex/foundation": "^4.9",
-        "netflex/support": "^4.9",
+        "netflex/api": "^4.9.1",
+        "netflex/foundation": "^4.9.1",
+        "netflex/support": "^4.9.1",
         "php": "^7.4|^8.0"
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "4.9.x-dev"
+            "dev-master": "4.10.x-dev"
         },
         "laravel": {
             "providers": [
