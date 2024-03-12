@@ -12,15 +12,14 @@ use Illuminate\Http\Request;
 use Illuminate\Queue\CallQueuedClosure;
 use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\QueueManager;
+use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Str;
 use Netflex\API\Facades\API;
-use Netflex\Foundation\Variable;
 use Netflex\Scheduler\Contracts\HasJobLabel;
-use Netflex\Support\JWT;
 use Throwable;
 
 class Scheduler implements Queue
@@ -47,6 +46,45 @@ class Scheduler implements Queue
    * @var callable[]
    */
   protected static $createPayloadCallbacks = [];
+
+  /**
+   *
+   * Validates the request by checking the headers against the payload and processed time and check if the data lines up
+   *
+   *
+   * @param Request $request
+   * @return string
+   */
+  public static function validateRequest(Request $request): string
+  {
+    abort_unless($request->hasHeader('X-NF-JOB-ID'), 400, 'X-NF-JOB-ID header is missing');
+    abort_unless($request->hasHeader('X-NF-JOB-PROCESSED-AT'), 400, 'X-NF-JOB-PROCESSED-AT header is missing');
+    abort_unless($request->hasHeader('X-NF-DIGEST'), 400, 'X-NF-DIGEST header is missing');
+
+    $privateKeys = self::getPrivateKeys();
+    abort_unless(sizeof($privateKeys) > 0, 500, 'Need to have at least one possible key to validate against');
+
+    $payload = $request->getContent();
+    $jobId = $request->header('X-NF-JOB-ID');
+    $processedAt = $request->header('X-NF-JOB-PROCESSED-AT');
+    $digest = $request->header('X-NF-DIGEST');
+
+    abort_if(cache()->has("scheduler-idempotency/$jobId:$processedAt"), 400, 'This request has already been received');
+    cache()->put("scheduler-idempotency/$jobId:$processedAt", true, 3600);
+    $valid = false;
+    $hashContent = "$jobId:$processedAt:" . $payload;
+    foreach ($privateKeys as $key) {
+      $keyDigest = hash_hmac('sha512', $hashContent, $key);
+      if ($keyDigest === $digest) {
+        $valid = true;
+        break;
+      }
+    }
+    abort_unless($valid, 400, 'Digest does not match critical components');
+    abort_unless(Carbon::parse($processedAt)->diffInMinutes() <= 5, 400, 'This request is too old, we won\'t process it');
+
+    return $payload;
+  }
 
   /**
    * Get the size of the queue.
@@ -114,9 +152,7 @@ class Scheduler implements Queue
    */
   public function pushRaw($payload, $queue = null, array $options = [])
   {
-    $timeout = Config::get(implode('.', ['queue', 'connections', $this->getConnectionName(), 'timeout']), 3600);
-    $token = JWT::create($payload, Variable::get('netflex_api'), $timeout);
-
+    $start = Carbon::parse($options['start'] ?? Carbon::now(), 'Europe/Oslo');
     $name = $payload['name'] ?? $payload['displayName'] . ' (' . $payload['uuid'] . ')';
 
     $url = route('netflex.queue.worker');
@@ -128,8 +164,8 @@ class Scheduler implements Queue
       'method' => 'post',
       'name' => $name,
       'url' => $url,
-      'payload' => ['task' => $token],
-      'start' => $options['start'] ?? Carbon::now()->toDateTimeString(),
+      'payload' => $payload,
+      'start' => $start->toDateTimeString(),
       'enabled' => true
     ]);
   }
@@ -415,44 +451,54 @@ class Scheduler implements Queue
     return $this;
   }
 
+  private static function getPrivateKeys(string $key = 'publicKey'): array
+  {
+    return array_values(array_filter([
+      config("api.$key"),
+      ...collect(config('api.connections', []))
+        ->pluck($key)
+        ->toArray()
+    ]));
+  }
+
   public static function handle(Request $request)
   {
-    if ($data = $request->get('task')) {
-      if ($jwt = JWT::decodeAndVerify($data, Variable::get('netflex_api'))) {
-        try {
-          set_time_limit(3600);
 
-          /** @var Scheduler $scheduler */
-          $scheduler = app(QueueManager::class)->connection('scheduler');
+    $payload = self::validateRequest($request);
 
-          $job = new SyncJob(
-            app(\Illuminate\Contracts\Container\Container::class),
-            json_encode($jwt),
-            $scheduler->getConnectionName(),
-            $scheduler->getQueue()
-          );
+    $uuid = data_get(json_decode($payload), 'uuid', 'unknown');
+    try {
+      set_time_limit(3600);
 
-          $scheduler->nextJob($job);
+      /** @var Scheduler $scheduler */
+      $scheduler = app(QueueManager::class)->connection('scheduler');
 
-          /** @var QueueManager $queue */
-          $queue = app('queue.worker');
-          $queue->runNextJob($scheduler->getConnectionName(), $scheduler->getQueue(), (new WorkerOptions('default', 0, 512, 3600)));
+      $job = new SyncJob(
+        app(\Illuminate\Contracts\Container\Container::class),
+        $payload,
+        $scheduler->getConnectionName(),
+        $scheduler->getQueue()
+      );
 
-          return [
-            'uuid' => $jwt->uuid,
-            'success' => true
-          ];
+      $scheduler->nextJob($job);
 
-        } catch (Throwable $e) {
-          if (App::environment() === 'local')
-            throw $e;
-          return response()->json([
-            'uuid' => $jwt->uuid ?? null,
-            'success' => false,
-            'error' => $e->getMessage()
-          ], 500);
-        }
-      }
+      /** @var Worker $queue */
+      $queue = app('queue.worker');
+      $queue->runNextJob($scheduler->getConnectionName(), $scheduler->getQueue(), (new WorkerOptions('default', 0, 512, 3600)));
+
+      return [
+        'uuid' => $uuid,
+        'success' => true
+      ];
+
+    } catch (Throwable $e) {
+      if (App::environment() === 'local')
+        throw $e;
+      return response()->json([
+        'uuid' => $uuid,
+        'success' => false,
+        'error' => $e->getMessage()
+      ], 500);
     }
   }
 }
