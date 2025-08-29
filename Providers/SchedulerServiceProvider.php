@@ -2,12 +2,15 @@
 
 namespace Netflex\Scheduler\Providers;
 
+use Throwable;
+
+use Netflex\Support\JWT;
+use Netflex\Foundation\Variable;
+use Netflex\Scheduler\SchedulerConnector;
+
 use Illuminate\Http\Request;
-use Illuminate\Queue\QueueManager;
-use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Netflex\Scheduler\Scheduler;
-use Netflex\Scheduler\SchedulerConnector;
 
 class SchedulerServiceProvider extends ServiceProvider
 {
@@ -24,7 +27,7 @@ class SchedulerServiceProvider extends ServiceProvider
 
   public function registerDriver()
   {
-    /** @var QueueManager $manager */
+    /** @var QueueManager */
     $manager = $this->app['queue'];
 
     $manager->addConnector('netflex', function () {
@@ -34,7 +37,7 @@ class SchedulerServiceProvider extends ServiceProvider
 
   public function registerRoutes()
   {
-    /** @var Router $router */
+    /** @var \Illuminate\Routing\Router */
     $router = $this->app['router'];
 
     $router->post('/.well-known/netflex/scheduler', function (Request $request) {
