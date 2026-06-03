@@ -12,17 +12,17 @@
         }
     },
     "require": {
-        "illuminate/http": "^12.0",
-        "illuminate/queue": "^12.0",
-        "illuminate/support": "^12.0",
-        "netflex/api": "^6.0",
-        "netflex/foundation": "^6.0",
-        "netflex/support": "^6.0",
-        "php": "^8.2"
+        "illuminate/http": "^13.0",
+        "illuminate/queue": "^13.0",
+        "illuminate/support": "^13.0",
+        "netflex/api": "^7.0",
+        "netflex/foundation": "^7.0",
+        "netflex/support": "^7.0",
+        "php": "^8.4"
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "6.0.x-dev"
+            "dev-master": "7.0.x-dev"
         },
         "laravel": {
             "providers": [
